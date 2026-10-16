@@ -41,24 +41,11 @@ SeisMLLM combines multi-view building imagery and earthquake metadata with retri
 
 This repository provides the Qwen2.5-VL LoRA training entry point, the inference pipeline, and source code for similar-case retrieval and codebook retrieval. Quantitative comparisons, qualitative cases and an example assessment report are available on the [project page](https://mayixuan836.github.io/SeisMLLM/#results).
 
-### Paper terminology and released fields
-
-**DC** (Damage Conditions) denotes the six condition ratings; **CDD** (Case Damage Description) denotes the descriptive damage evidence. They are stored together in `6_evaluation`: each condition has a `status` (DC) and a `description` (CDD). No separate concatenated `CDD` field is required.
-
-| Paper term | Released JSON | Evaluation |
-| --- | --- | --- |
-| DC | `6_evaluation.<condition>.status` | Exact-match accuracy, averaged across conditions and then cases. |
-| CDD | `6_evaluation.<condition>.description` | BLEU-4, METEOR and ROUGE-L, computed per condition and then averaged across conditions and cases. |
-| SID | `9_image_descriptions` | Image-level descriptive text. |
-| SP | `8_final_status.status` and `.reasoning` | Safety posting and its supporting reasoning. |
-
-The `[DC]` section in `train.json` and `test.json` groups the ratings and supporting descriptions from the same six condition objects. There is no separate `[CDD]` section. Similar-case retrieval joins the existing condition descriptions temporarily to form retrieval text; evaluation scores the descriptions per condition. These field definitions do not change the inference stages.
-
 [Installation](#installation) · [Dataset](#dataset) · [Training](#training) · [Inference](#inference) · [Repository layout](#repository-layout) · [Citation](#citation)
 
 ## Dataset
 
-- **[SeisMLLM-1K](https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset):** 1,306 building cases across 17 earthquake event groups, with multi-view images, earthquake metadata and structured assessment annotations. See the [field dictionary](https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset/blob/main/DATA_DICTIONARY.md) for the released schema.
+- **[SeisMLLM-1K](https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset):** 1,306 building cases across 17 earthquake event groups, with multi-view images, earthquake metadata and structured assessment annotations. See the [Annotation Schema](https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset#annotation-schema) and [field dictionary](https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset/blob/main/DATA_DICTIONARY.md) for field definitions and their correspondence with the paper.
 - **[Nepal/Ecuador case-study supplement](https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset/tree/main/case_study):** 48 cases and 382 selected original-resolution images, separate from the core train/test split. Images, annotations, source citations and checksums are available in the [supplement release](https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset/releases/tag/case-study-v1.0).
 
 ## Installation
