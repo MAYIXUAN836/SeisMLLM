@@ -2,11 +2,12 @@ import json
 import os
 import re
 from pathlib import Path
+from assessment_format import PO_CATEGORIES, CT_CATEGORIES
 
 
 def get_inference_system_prompt():
     """System prompt for API inference - JSON format matching GT structure."""
-    return """You are a professional structural engineer and earthquake safety assessment expert.
+    prompt = """You are a professional structural engineer and earthquake safety assessment expert.
 
 Your task is to analyze building images after an earthquake and generate a comprehensive safety report following the ATC-20 rapid evaluation standard.
 
@@ -86,12 +87,12 @@ DETAILED FIELD REQUIREMENTS
 [3_primary_occupation]
 - visual_evidence: 1-2 sentences of observable usage clues
 - category: MUST be ONE of:
-  Dwelling | Commercial | School | Office | Public assembly | Industrial | Historic | Government | Emergency services | Other
+  {po_categories}
 
 [4_type_of_construction]
 - visual_evidence: 1-2 sentences describing visible structural elements
 - category: MUST be ONE of:
-  Wood frame | Steel frame | Concrete frame | Concrete shear wall | Unreinforced masonry (URM) | Reinforced masonry | Confined masonry | Bottom-frame masonry | Other
+  {ct_categories}
 
 Visual Identification Rules:
   - Wood frame: Visible wood studs, timber trusses
@@ -101,7 +102,7 @@ Visual Identification Rules:
   - URM: Brick/stone/earth walls WITHOUT concrete tie-columns
   - Reinforced masonry: Concrete masonry blocks with clean joints
   - Confined masonry: Brick WITH visible concrete tie-columns (构造柱) and ring beams (圈梁)
-  - Bottom-frame masonry: Commercial ground floor + residential upper floors
+  - Bottom-frame masonry: Reinforced concrete frame at lower stories supporting masonry bearing walls above
 
 [5_stories]
 - over_ground: Integer (only if full height visible), else null
@@ -152,6 +153,7 @@ CORE PRINCIPLES
 4. CONSISTENCY - Section 8 matches Section 6 status values exactly
 5. FILENAMES - Use ONLY provided filenames in image_descriptions
 """
+    return prompt.replace("{po_categories}", " | ".join(PO_CATEGORIES)).replace("{ct_categories}", " | ".join(CT_CATEGORIES))
 
 
 DATASET_DIR = Path(os.environ.get("SEISMLLM_DATASET_DIR", Path(__file__).resolve().parents[1] / "Dataset"))
@@ -161,6 +163,19 @@ def load_json(file_path):
   """Load JSON file."""
   with open(file_path, "r", encoding="utf-8") as f:
     return json.load(f)
+
+
+def extract_earthquake_metadata(content):
+  """Read only event context from the supplied user prompt."""
+  patterns = {
+    "name": r"Name:\s*([^,\n]+)", "date": r"Date:\s*([^,\n]+)",
+    "magnitude": r"Magnitude:\s*([^,\n]+)", "location": r"Location:\s*([^.\n]+)",
+  }
+  result = {}
+  for key, pattern in patterns.items():
+    match = re.search(pattern, content)
+    result[key] = match[1].strip() if match else "Unknown"
+  return result
 
 
 def fix_image_paths(data):
@@ -204,16 +219,7 @@ def get_inference_dataset(test_file_path: str | None = None):
     original_content = user_msg.get("content", "")
 
     # Parse earthquake metadata
-    eq_metadata: dict[str, str] = {}
-    name_match = re.search(r"Name:\s*([^,\n]+)", original_content)
-    date_match = re.search(r"Date:\s*([^,\n]+)", original_content)
-    mag_match = re.search(r"Magnitude:\s*([^,\n]+)", original_content)
-    loc_match = re.search(r"Location:\s*([^.\n]+)", original_content)
-
-    eq_metadata["name"] = name_match.group(1).strip() if name_match else "Unknown"
-    eq_metadata["date"] = date_match.group(1).strip() if date_match else "Unknown"
-    eq_metadata["magnitude"] = mag_match.group(1).strip() if mag_match else "Unknown"
-    eq_metadata["location"] = loc_match.group(1).strip() if loc_match else "Unknown"
+    eq_metadata = extract_earthquake_metadata(original_content)
 
     # Get filenames
     filenames_list = [os.path.basename(img_path) for img_path in images]

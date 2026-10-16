@@ -54,6 +54,8 @@ for _p in [OPEN_SOURCE_DIR, RAG_SIMILAR_DIR, RAG_ATC_DIR, RAG_ANYTHING_DIR]:
 
 # --- Imports ---
 from performance_monitor import PerformanceMonitor, estimate_tokens_from_json_output
+from assessment_format import parse_assessment_output
+from utils_qwen_finetune import extract_earthquake_metadata
 
 # 1. Stage 1: Qwen Inference
 try:
@@ -146,8 +148,8 @@ def validate_and_fix_stage1_output(output):
             '木结构': 'Wood frame',
         },
         'PO': {
-            '办公室': 'Office',
-            '办公': 'Office',
+            '办公室': 'Offices',
+            '办公': 'Offices',
             '商业': 'Commercial',
             '住宅': 'Dwelling',
             '学校': 'School',
@@ -414,19 +416,11 @@ class Pipeline:
         # 估算token数
         token_count = estimate_tokens_from_json_output(output_text)
         
-        # Parse JSON
-        output_text = output_text.strip()
-        if not output_text.startswith('{'):
-            start_idx = output_text.find('{')
-            if start_idx != -1:
-                output_text = output_text[start_idx:]
-        if not output_text.endswith('}'):
-            end_idx = output_text.rfind('}')
-            if end_idx != -1:
-                output_text = output_text[:end_idx+1]
-        
         try:
-            full_pred = json.loads(output_text)
+            # Training uses tagged reports; the original inference prompt requests JSON.
+            # Both formats are adapted to the same existing assessment structure.
+            full_pred = parse_assessment_output(output_text)
+            full_pred.setdefault("1_earthquake_id", extract_earthquake_metadata(user_prompt))
             full_pred = normalize_prediction(full_pred)
 
             # 从完整JSON中提取Stage1所需的精简字段（仅供 RAG 使用，不改变 full_pred 本身）
@@ -447,7 +441,7 @@ class Pipeline:
             # 返回完整 Qwen 预测 + 精简 Stage1 字段 + token数
             return full_pred, fixed_stage1, token_count
         except Exception as e:
-            print(f"✗ Stage 1 JSON Parse Error: {e}")
+            print(f"✗ Stage 1 Assessment Parse Error: {e}")
             return None
 
     def run_stage2a(self, stage1_json, test_case_id="Unknown"):

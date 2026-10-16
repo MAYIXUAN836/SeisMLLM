@@ -4,13 +4,23 @@
 import argparse
 import json
 import subprocess
+import warnings
 from pathlib import Path
+from Inference.assessment_format import PO_CATEGORIES, CT_CATEGORIES, parse_assessment_output
 
 
 def prepare_data(dataset_dir, output_dir):
     dataset_dir = Path(dataset_dir).resolve()
     records = json.loads((dataset_dir / "train.json").read_text(encoding="utf-8"))
+    pending_categories = 0
     for item in records:
+        # Verify that targets are readable by the inference adapter; retain source labels.
+        for message in item["messages"]:
+            if message["role"] == "assistant":
+                report = parse_assessment_output(message["content"])
+                if (report["3_primary_occupation"]["category"] not in PO_CATEGORIES
+                        or report["4_type_of_construction"]["category"] not in CT_CATEGORIES):
+                    pending_categories += 1
         paths = []
         for value in item["images"]:
             path = Path(value)
@@ -26,6 +36,8 @@ def prepare_data(dataset_dir, output_dir):
         if user_text.count("<image>") != len(paths):
             raise ValueError("Image placeholder count does not match the case's images")
         item["images"] = paths
+    if pending_categories:
+        warnings.warn(f"{pending_categories} training cases have category labels pending review; original labels are preserved.")
     prepared_dir = Path(output_dir).resolve() / "prepared_data"
     prepared_dir.mkdir(parents=True, exist_ok=True)
     (prepared_dir / "train.json").write_text(json.dumps(records, ensure_ascii=False), encoding="utf-8")

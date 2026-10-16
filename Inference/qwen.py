@@ -12,6 +12,7 @@ import json
 import os
 
 from typing import Any, Dict
+from assessment_format import PO_MAPPING, CT_MAPPING
 
 import torch
 from PIL import Image
@@ -47,39 +48,8 @@ ALLOWED_VIEW = {
     "exterior and interior": "Exterior and interior",
 }
 
-ALLOWED_PO = {
-    "dwelling": "Dwelling",
-    "other residential": "Other residential",
-    "public assembly": "Public assembly",
-    "emergency services": "Emergency services",
-    "commercial": "Commercial",
-    "offices": "Offices",
-    "industrial": "Industrial",
-    "government": "Government",
-    "historic": "Historic",
-    "school": "School",
-    "other": "Other",
-    "residential": "Dwelling",
-    "mixed-use": "Other",
-    "mixed use": "Other",
-}
-
-ALLOWED_CT = {
-    "wood frame": "Wood frame",
-    "steel frame": "Steel frame",
-    "concrete frame": "Concrete frame",
-    "reinforced concrete frame": "Concrete frame",
-    "rc frame": "Concrete frame",
-    "concrete shear wall": "Concrete shear wall",
-    "urm": "Unreinforced masonry (URM)",
-    "unreinforced masonry": "Unreinforced masonry (URM)",
-    "reinforced masonry": "Reinforced masonry",
-    "confined masonry": "Confined masonry",
-    "masonry": "Unreinforced masonry (URM)",
-    "bottom-frame masonry": "Bottom-frame masonry",
-    "bottom frame masonry": "Bottom-frame masonry",
-    "other": "Other",
-}
+ALLOWED_PO = PO_MAPPING
+ALLOWED_CT = CT_MAPPING
 
 ALLOWED_STATUS = {
     "minor/none": "Minor/none",

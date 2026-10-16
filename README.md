@@ -80,6 +80,10 @@ python train.py --dataset-dir Dataset --output-dir saves/seismllm
 
 `train.py` runs Qwen2.5-VL-7B LoRA SFT with the retained training settings and a 10% internal validation subset. It prepares absolute image paths in the output directory without changing the source dataset. Add `--dry-run` to prepare and validate the inputs without launching training.
 
+Training retains the released tagged report targets (`[IS]`, `[PO]`, `[CT]`, `[SN]`, `[DC]`, `[SID]`). Preparation checks that every target can be read by the inference adapter. Stage 1 accepts both these reports and JSON predictions, converting reports into the existing nested assessment fields before retrieval and reasoning. Older reports using `[CDD]` for the six condition ratings are supported too. Missing safety postings or damage estimates are not invented by the adapter.
+
+Category names are shared between the prompt and normalization code in `Inference/assessment_format.py`. `Office` is accepted as an alias for the released spelling `Offices`; `Other residential`, `Tilt-up concrete` and the existing construction-visibility label are retained. Original labels pending review are preserved and reported during training preparation.
+
 ## Inference
 
 ```bash
@@ -133,6 +137,7 @@ SeisMLLM/
 ├── inference.py                   # Safety-assessment inference pipeline
 ├── Inference/
 │   ├── qwen.py                    # Multimodal model interface
+│   ├── assessment_format.py       # Shared categories and JSON/report adapter
 │   ├── utils_qwen_finetune.py      # Fine-tuned model utilities
 │   ├── performance_monitor.py     # Runtime monitoring
 │   ├── RAG-similar-cases/          # Historical-case indexing and retrieval
