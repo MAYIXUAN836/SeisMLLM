@@ -8,7 +8,7 @@ Supports PDF processing with complete multimodal document understanding:
 - Batch processing capabilities
 
 Usage:
-    python 1_create_knowledge_base_enhanced.py
+    RAG_ATC_PDF_FILE=/path/to/source.pdf python Inference/RAG-ATC/build.py
 """
 
 import asyncio
@@ -260,7 +260,11 @@ async def batch_process_documents(pdf_files: list):
     print(f"{'='*70}")
 
 async def main():
-    """Main function - configure PDF file in config.py"""
+    """Main function - set the source PDF with RAG_ATC_PDF_FILE."""
+
+    if not PDF_FILE:
+        print("Set RAG_ATC_PDF_FILE to the source PDF path before building the knowledge base.")
+        return
     
     print("="*70)
     print("RAG-Anything Knowledge Base Creator")

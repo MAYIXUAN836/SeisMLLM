@@ -209,7 +209,7 @@ def validate_and_fix_stage1_output(output):
     return fixed_output, issues
 
 async def translate_to_english_if_needed(text: str) -> str:
-    """如包含中文，则调用GPT-4o翻译为英文，仅用于内部检索/推理。
+    """如包含中文，则调用配置的语言模型翻译为英文，仅用于内部检索/推理。
 
     - 如果没有中文，直接返回原文
     - 翻译时强制要求只返回英文内容
@@ -556,7 +556,7 @@ class Pipeline:
             return ""
 
     async def run_stage3(self, stage1_full_json, stage1_for_gpt, similar_cases_list, atc_rules):
-        """Stage 3: GPT-4o基于description + similar cases + ATC判断status和SP。"""
+        """Stage 3: Qwen基于description + similar cases + ATC判断status和SP。"""
         """Stage 3: 只预测 DC (6_evaluation) 和 SP (8_final_status)，其余字段保持 Qwen Stage1 不变。"""
 
         # 构造相似cases文本摘要（只用 Stage1 相关字段）
@@ -792,7 +792,7 @@ Strict requirements:
         with open(os.path.join(retrieval_dir, f"case_{test_case_id}_retrieve.json"), "w", encoding="utf-8") as f:
             json.dump(retrieval_log, f, indent=2, ensure_ascii=False)
 
-        # Stage 3：在 Qwen 的完整预测基础上，用 RAG + GPT-4o 优化 Stage2 相关字段，使用top1和top2 cases
+        # Stage 3：在 Qwen 的完整预测基础上，用 RAG + Qwen 优化损伤评级和安全标签，使用top1和top2 cases
         
         # 创建只包含description的6_evaluation
         stage1_for_stage3 = dict(stage1_full)

@@ -10,7 +10,7 @@ Environment variables (recommended):
 - RAG_ATC_LLM_MODEL      : Chat model name (e.g. qwen2.5:32b)
 - RAG_ATC_EMBED_MODEL    : Embedding model name (e.g. bge-m3:latest)
 - RAG_ATC_EMBED_DIM      : Embedding dimension (default: 1024)
-- RAG_ATC_PDF_FILE       : Path to FEMA 306 (or other) PDF
+- RAG_ATC_PDF_FILE       : Path to the source PDF for knowledge-base construction
 - RAG_ATC_KB_DIR         : Knowledge base working directory
 - RAG_ATC_QUERY_MODE     : naive | local | global | hybrid
 """
@@ -28,7 +28,7 @@ ROOT_DIR = Path(__file__).resolve().parent
 # 知识库存储目录与查询模式
 KNOWLEDGE_BASE_DIR = os.getenv(
     "RAG_ATC_KB_DIR",
-    str(ROOT_DIR / "rag_storage_fema_306_digital_version"),
+    str(ROOT_DIR / "rag_storage_codebook"),
 )
 
 QUERY_MODE = os.getenv("RAG_ATC_QUERY_MODE", "hybrid")  # naive/local/global/hybrid
@@ -48,12 +48,9 @@ EMBEDDING_DIM = int(os.getenv("RAG_ATC_EMBED_DIM", "1024"))
 EMBEDDING_MAX_TOKEN_SIZE = int(os.getenv("RAG_ATC_EMBED_MAX_TOKENS", "8192"))
 
 
-# ==================== FEMA 306 PDF 路径（用于构建知识库） ====================
+# ==================== 源 PDF 路径（用于构建知识库） ====================
 
-PDF_FILE = os.getenv(
-    "RAG_ATC_PDF_FILE",
-    str(ROOT_DIR / "FEMA_306.pdf"),  # 用户可按需修改或通过环境变量覆盖
-)
+PDF_FILE = os.getenv("RAG_ATC_PDF_FILE", "")
 
 
 # ==================== 解析与多模态开关 ====================
