@@ -97,6 +97,18 @@ The manifests are read from `Dataset/`, or the directory specified by `SEISMLLM_
 python Inference/RAG-similar-cases/index.py
 ```
 
+### Codebook source and construction
+
+Obtain the applicable ATC-20 publication from the [Applied Technology Council](https://store.atcouncil.org/products/procedures-for-postearthquake-safety-evaluation-of-buildings-addendum?variant=48162042347732). The [ATC-20-1 Field Manual, second edition (2005)](https://store.atcouncil.org/products/field-manual-postearthquake-safety-evaluation-of-buildings-2nd-edition) is the field-manual reference used by SeisMLLM. Source publications retain their publisher's rights. Official evaluation forms and placards are available on the [ATC-20 resource page](https://www.atcouncil.org/atc-20); these are separate from the complete manual. The manual reference is included in [CITATION.bib](CITATION.bib).
+
+With a source PDF that you have permission to use, configure the model and embedding settings above, then build the codebook database locally:
+
+```bash
+export RAG_ATC_PDF_FILE="/path/to/your/source.pdf"
+export RAG_ATC_KB_DIR="/path/to/codebook_database"
+python Inference/RAG-ATC/build.py
+```
+
 ## Repository layout
 
 ```text
