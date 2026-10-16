@@ -1,0 +1,13 @@
+torch
+transformers>=4.49.0,<5
+accelerate
+peft
+Pillow
+numpy
+tqdm
+sentence-transformers
+rank-bm25
+openai
+raganything
+lightrag-hku
+llamafactory
