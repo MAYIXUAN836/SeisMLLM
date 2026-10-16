@@ -197,9 +197,9 @@ def validate_and_fix_stage1_output(output):
         if '未提供' in output['SN'] or '不清楚' in output['SN']:
             fixed_output['SN'] = 'Over ground: Unknown'
 
-    # CDD 和 SID 先只标记问题，翻译放到后面的异步流程里
-    if 'CDD' in output and contains_chinese(output['CDD']):
-        issues.append(f"CDD contains Chinese: {output['CDD']}")
+    # DC 和 SID 先只标记问题，翻译放到后面的异步流程里
+    if 'DC' in output and contains_chinese(output['DC']):
+        issues.append(f"DC contains Chinese: {output['DC']}")
 
     if 'SID' in output and isinstance(output['SID'], str) and contains_chinese(output['SID']):
         issues.append("SID contains Chinese")
@@ -287,7 +287,7 @@ async def english_only_llm(prompt, system_prompt=None, **kwargs):
 
 
 def full_json_to_stage1_fields(full_json: dict) -> dict:
-    """将Qwen输出的完整ATC-20 JSON压缩成 Stage1 需要的字段(IS, PO, CT, SN, CDD, SID等)。"""
+    """将Qwen输出的完整ATC-20 JSON压缩成 Stage1 需要的字段(IS, PO, CT, SN, DC, SID等)。"""
 
     view_type = full_json.get("2_view_type", "Unknown")
 
@@ -305,7 +305,7 @@ def full_json_to_stage1_fields(full_json: dict) -> dict:
         sn = "Over ground: None"
 
     evals = full_json.get("6_evaluation", {}) or {}
-    cdd_parts = []
+    dc_parts = []
     cond_map = [
         ("collapse", "1_collapse_partial_collapse_or_building_off_foundation"),
         ("building", "2_building_or_story_leaning"),
@@ -318,12 +318,12 @@ def full_json_to_stage1_fields(full_json: dict) -> dict:
         cond = evals.get(long_key, {}) or {}
         status = cond.get("status", "Unknown")
         desc = cond.get("description", "")
-        # Legacy interface: the CDD string includes condition statuses and descriptions.
+        # The DC string includes condition statuses and supporting descriptions.
         if desc:
-            cdd_parts.append(f"{short_key}: {status} ({desc})")
+            dc_parts.append(f"{short_key}: {status} ({desc})")
         else:
-            cdd_parts.append(f"{short_key}: {status}")
-    cdd = "; ".join(cdd_parts)
+            dc_parts.append(f"{short_key}: {status}")
+    dc = "; ".join(dc_parts)
 
     img_desc = full_json.get("9_image_descriptions", {}) or {}
     sid_list = []
@@ -335,7 +335,7 @@ def full_json_to_stage1_fields(full_json: dict) -> dict:
         "PO": po_cat,
         "CT": ct_cat,
         "SN": sn,
-        "CDD": cdd,
+        "DC": dc,
         "SID": sid_list,
         "5_stories": stories,
         "6_evaluation": evals,
@@ -393,7 +393,7 @@ class Pipeline:
 
         返回值为 (full_pred, stage1_fixed)：
         - full_pred: 归一化后的完整 Qwen JSON（用于评估 Stage1，保持与 baseline 一致）
-        - stage1_fixed: 仅包含 IS/PO/CT/SN/CDD/SID 等字段，用于后续 RAG 检索
+        - stage1_fixed: 仅包含 IS/PO/CT/SN/DC/SID 等字段，用于后续 RAG 检索
         """
         # Qwen inference
         # Note: generate_json is synchronous in the original script, but we are in async loop.
@@ -454,7 +454,7 @@ class Pipeline:
         print("="*80)
         
         # Convert Stage 1 simplified format to full format expected by retrieval
-        # Stage 1 outputs: IS, PO, CT, SN, CDD, SID
+        # Stage 1 outputs: IS, PO, CT, SN, DC, SID
         # Retrieval expects: 2_view_type, 3_primary_occupation, 4_type_of_construction, 5_stories, 9_image_descriptions
         
         converted_case = {
@@ -517,23 +517,23 @@ class Pipeline:
         print("="*80)
 
         # Construct query from Stage 1 JSON - use actual Stage 1 field names
-        # Stage 1 outputs: IS, PO, CT, SN, CDD, SID
+        # Stage 1 outputs: IS, PO, CT, SN, DC, SID
         ct_raw = stage1_json.get("CT", "Unknown")  # Construction Type
         po_raw = stage1_json.get("PO", "Unknown")  # Primary Occupation
-        cdd_raw = stage1_json.get("CDD", "Unknown")  # Damage Description
+        dc_raw = stage1_json.get("DC", "Unknown")  # Damage Description
         sid_raw = stage1_json.get("SID", [])  # Image descriptions
 
         # Stage3 Qwen模型输出已经是英文，直接使用
         ct = ct_raw
         po = po_raw
-        cdd = cdd_raw
+        dc = dc_raw
         sid = sid_raw
 
         # Build a comprehensive query based on Stage 1 results (now English-only as far as possible)
-        damage_details = ", ".join(sid[:2]) if isinstance(sid, list) and sid else cdd
+        damage_details = ", ".join(sid[:2]) if isinstance(sid, list) and sid else dc
 
         query = f"""Safety evaluation for {ct} building used as {po}. 
-        Observed damage: {cdd} severity. 
+        Observed damage: {dc} severity. 
         Specific observations: {damage_details}. 
         What are the ATC-20 evaluation criteria and posting requirements?"""
 
