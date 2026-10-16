@@ -7,9 +7,10 @@ import torch
 from sentence_transformers import SentenceTransformer
 from rank_bm25 import BM25Okapi
 import re
+from split_guard import dataset_directory, load_splits, select_training_records, validate_index
 
 # Configuration
-JSON_PATH = os.environ.get("SEISMLLM_CASES_JSON", "Dataset/Full_GT.json")
+JSON_PATH = os.environ.get("SEISMLLM_CASES_JSON", str(dataset_directory() / "Full_GT.json"))
 INDEX_OUTPUT_PATH = os.environ.get("SEISMLLM_CASE_INDEX", str(Path(__file__).resolve().parent / "v5-knowledge_base_stage1.pkl"))
 MODEL_NAME = 'BAAI/bge-base-en-v1.5'
 
@@ -84,6 +85,10 @@ def main():
     
     print(f"Loading raw data from {JSON_PATH}...")
     raw_data = load_data(JSON_PATH)
+    # Full_GT supplies annotations; only cases in train.json may enter the index.
+    splits = load_splits()
+    raw_data = select_training_records(raw_data, splits)
+    print(f"Selected {len(raw_data)} training cases; released test cases are excluded.")
     
     documents_dense = []  # For dense embedding (descriptions + CDD)
     documents_full = []   # For BM25 (full text)
@@ -133,6 +138,7 @@ def main():
         "metadata": metadata_list       # Enhanced metadata for structured scoring
     }
     
+    validate_index(knowledge_base, splits)
     print(f"Saving V5 Structured Hybrid Knowledge Base to {INDEX_OUTPUT_PATH}...")
     with open(INDEX_OUTPUT_PATH, 'wb') as f:
         pickle.dump(knowledge_base, f)

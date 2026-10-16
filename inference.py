@@ -9,7 +9,6 @@ import numpy as np
 from pathlib import Path
 from tqdm import tqdm
 import importlib.util
-import pickle
 from PIL import Image
 import re
 import time
@@ -95,7 +94,7 @@ from config import (
 def extract_case_info_from_image(image_path: str):
     """从图片路径中解析 earthquake_folder 和 case_id，用于日志和评估对齐。
 
-    兼容两种路径：
+    兼容公开版 SeisMLLM-1K/case_XXXX 路径及两种内部路径：
     - .../dataset/<earthquake_folder>/<case_id>/<filename>
     - .../VLM finetune dataset/<earthquake_folder>/<case_id>/<filename>
     """
@@ -103,6 +102,10 @@ def extract_case_info_from_image(image_path: str):
         return "Unknown", "Unknown"
 
     parts = image_path.replace("\\", "/").split("/")
+    if "SeisMLLM-1K" in parts:
+        idx = parts.index("SeisMLLM-1K")
+        if idx + 2 < len(parts):
+            return parts[-1].split("_")[0], parts[idx + 1]
     try:
         if "dataset" in parts:
             idx = parts.index("dataset")
@@ -351,16 +354,15 @@ class Pipeline:
         self.similar_case_model = None
         self.rag_atc = None
         
-    async def initialize(self):
+    async def initialize(self, evaluation_records=()):
+        print("Initializing Stage 2a: Similar Case KB (Stage1-only)...")
+        # Recheck training membership and evaluation isolation before loading models.
+        kb_path = os.environ.get("SEISMLLM_CASE_INDEX", os.path.join(RAG_SIMILAR_DIR, "v5-knowledge_base_stage1.pkl"))
+        self.similar_case_kb = v5_retrieve.load_knowledge_base(kb_path, evaluation_records)
+
         print("Initializing Stage 1: Qwen Model...")
         self.qwen_engine = QwenLoRAInference(BASE_MODEL_PATH, LORA_PATH)
         self.qwen_engine.load_model()
-        
-        print("Initializing Stage 2a: Similar Case KB (Stage1-only)...")
-        # 使用只包含 Stage1 GT（并且排除 130 个 test case）的新 KB
-        kb_path = os.environ.get("SEISMLLM_CASE_INDEX", os.path.join(RAG_SIMILAR_DIR, "v5-knowledge_base_stage1.pkl"))
-        with open(kb_path, 'rb') as f:
-            self.similar_case_kb = pickle.load(f)
         
         device = "cuda" if torch.cuda.is_available() else "cpu"
         self.similar_case_model = SentenceTransformer('BAAI/bge-base-en-v1.5', device=device)
@@ -432,6 +434,7 @@ class Pipeline:
 
             # Validate and fix Stage1 精简字段（主要是语言/分类归一化）
             fixed_stage1, issues = validate_and_fix_stage1_output(stage1_raw)
+            fixed_stage1["images"] = images
 
             if issues:
                 print("\n⚠ Stage 1 Output Issues Detected:")
@@ -458,7 +461,8 @@ class Pipeline:
         # Retrieval expects: 2_view_type, 3_primary_occupation, 4_type_of_construction, 5_stories, 9_image_descriptions
         
         converted_case = {
-            "case_id": test_case_id,  # Add case_id to prevent self-retrieval
+            "case_id": test_case_id,
+            "images": stage1_json.get("images", []),
             "2_view_type": stage1_json.get("IS", "Unknown"),
             "3_primary_occupation": {
                 "category": stage1_json.get("PO", "Unknown")
@@ -467,6 +471,7 @@ class Pipeline:
                 "category": stage1_json.get("CT", "Unknown")
             },
             "5_stories": stage1_json.get("5_stories", {"over_ground": None, "under_ground": None}),
+            "6_evaluation": stage1_json.get("6_evaluation", {}),
             "9_image_descriptions": {}
         }
         
@@ -760,10 +765,12 @@ Strict requirements:
         similar_cases = retrieve_hybrid_structured(
             {
                 "case_id": test_case_id,
+                "images": local_images,
                 "2_view_type": stage1_res.get("IS", "Unknown"),
                 "3_primary_occupation": {"category": stage1_res.get("PO", "Unknown")},
                 "4_type_of_construction": {"category": stage1_res.get("CT", "Unknown")},
                 "5_stories": stage1_res.get("5_stories", {"over_ground": None, "under_ground": None}),
+                "6_evaluation": stage1_res.get("6_evaluation", {}),
                 "9_image_descriptions": {f"image{i+1}": desc for i, desc in enumerate(stage1_res.get("SID", []))}
             },
             self.similar_case_kb, self.similar_case_model, top_k=3
@@ -825,7 +832,6 @@ async def main(data_path, output_path, limit=None):
     pipeline_start = time.time()
     
     pipeline = Pipeline()
-    await pipeline.initialize()  # Changed to await since initialize is now async
     
     # 使用新的 full_test.json 作为测试集（与 LVLM-inference-2 保持一致）
     test_json_path = data_path
@@ -833,6 +839,7 @@ async def main(data_path, output_path, limit=None):
     # 完全复用 utils_qwen_finetune.get_inference_dataset 生成的 system_prompt / user_prompt / images
     from utils_qwen_finetune import get_inference_dataset
     inference_data = get_inference_dataset(test_json_path)
+    await pipeline.initialize(inference_data)
     
     # 结果输出路径（会在运行过程中不断覆盖写入，保存当前已完成的样本）
     # Use a combined Similar+ATC output name to avoid collisions with other pipelines

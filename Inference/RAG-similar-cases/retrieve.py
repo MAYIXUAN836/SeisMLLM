@@ -8,6 +8,7 @@ from sentence_transformers import SentenceTransformer
 from rank_bm25 import BM25Okapi
 import re
 from tqdm import tqdm
+from split_guard import image_names, load_splits, validate_index
 
 # Configuration
 INDEX_PATH = os.environ.get("SEISMLLM_CASE_INDEX", str(Path(__file__).resolve().parent / "v5-knowledge_base_stage1.pkl"))
@@ -38,9 +39,12 @@ CONDITIONS = [
     "6_others"
 ]
 
-def load_knowledge_base(path):
+def load_knowledge_base(path, evaluation_records=()):
     with open(path, 'rb') as f:
-        return pickle.load(f)
+        kb = pickle.load(f)
+    # Validate existing indices too; a filename/comment is not evidence of isolation.
+    validate_index(kb, load_splits(), evaluation_records)
+    return kb
 
 def construct_stage1_text(item):
     """
@@ -152,6 +156,7 @@ def calculate_metadata_score(query, candidate):
     return score / 5.0  # Normalize to [0, 1] (max score = 5.0)
 
 def retrieve_hybrid_structured(query_case, kb, model, top_k=1):
+    query_images = image_names(query_case)
     library_embeddings = kb['embeddings']
     library_meta = kb['metadata']
     bm25 = kb['bm25_model']
@@ -165,7 +170,7 @@ def retrieve_hybrid_structured(query_case, kb, model, top_k=1):
     query_full = construct_full_text(query_case)
     tokenized_query = tokenize(query_full)
     sparse_scores = np.array(bm25.get_scores(tokenized_query))
-    if sparse_scores.max() > 0:
+    if sparse_scores.max() > 0 and sparse_scores.max() > sparse_scores.min():
         sparse_scores = (sparse_scores - sparse_scores.min()) / (sparse_scores.max() - sparse_scores.min())
     else:
         sparse_scores = np.zeros_like(dense_scores)
@@ -174,12 +179,12 @@ def retrieve_hybrid_structured(query_case, kb, model, top_k=1):
     # No hard filtering on CT - allow visual similarity to compensate for CT errors
     meta_scores = np.zeros_like(dense_scores)
     
-    q_id = query_case.get('case_id', 'Unknown')
-    
     candidates = []
     
     for idx, meta in enumerate(library_meta):
-        if meta['id'] == q_id: continue
+        # Exclude the same building case even when IDs/folders differ or views are a subset.
+        if image_names(meta['original_data']) & query_images:
+            continue
         # Removed hard CT filter - now using soft constraint in metadata score
         
         # Calculate Metadata Score (includes CT as soft constraint)

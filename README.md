@@ -85,6 +85,18 @@ python inference.py --data Dataset/test.json --output results/predictions.json
 
 Supporting source is in `Inference/`. Similar-case indexing and retrieval are in `Inference/RAG-similar-cases/`; codebook construction and querying are in `Inference/RAG-ATC/`.
 
+### Similar-case isolation
+
+1. **Training cases only.** The index builder reads annotations from `Full_GT.json`, but admits only complete cases matching `train.json`. Cases in `test.json` are excluded before embedding.
+2. **Image-based case identity.** Complete image filenames identify cases across different folders and legacy case numbers. Retrieval excludes any candidate sharing an image with the query, including queries using a subset of views.
+3. **Validation when loading.** Every loaded index is checked against the current train/test manifests and the actual inference inputs. Test cases, unregistered cases, duplicate cases and overlaps with inference inputs cause loading to stop.
+
+The manifests are read from `Dataset/`, or the directory specified by `SEISMLLM_DATASET_DIR`. The split manifests must have distinct image filenames. Build the similar-case index with:
+
+```bash
+python Inference/RAG-similar-cases/index.py
+```
+
 ## Repository layout
 
 ```text
