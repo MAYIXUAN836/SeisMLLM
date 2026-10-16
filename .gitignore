@@ -19,3 +19,4 @@ retrieval_logs/
 *.graphml
 rag_storage*/
 output_*/
+Inference/RAG-ATC/*.pdf

@@ -50,7 +50,7 @@ EMBEDDING_MAX_TOKEN_SIZE = int(os.getenv("RAG_ATC_EMBED_MAX_TOKENS", "8192"))
 
 # ==================== 源 PDF 路径（用于构建知识库） ====================
 
-PDF_FILE = os.getenv("RAG_ATC_PDF_FILE", "")  # Set your absolute path to 20-1-OCR.pdf.
+PDF_FILE = os.getenv("RAG_ATC_PDF_FILE", "")  # Set your absolute path to a local source PDF.
 
 
 # ==================== 解析与多模态开关 ====================

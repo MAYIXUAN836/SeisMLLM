@@ -99,9 +99,9 @@ python Inference/RAG-similar-cases/index.py
 
 ### Codebook source and construction
 
-The OCR source PDF, [20-1-OCR.pdf](Inference/RAG-ATC/20-1-OCR.pdf), is located beside the knowledge-graph builder. It is the [ATC-20-1 Field Manual, second edition (2005)](https://store.atcouncil.org/products/field-manual-postearthquake-safety-evaluation-of-buildings-2nd-edition); the reference is included in [CITATION.bib](CITATION.bib). The PDF is a third-party publication by the Applied Technology Council and is excluded from this repository's MIT License. Its original rights remain with the rights holders.
+Obtain the [ATC-20-1 Field Manual, second edition (2005)](https://store.atcouncil.org/products/field-manual-postearthquake-safety-evaluation-of-buildings-2nd-edition) from the Applied Technology Council. The manual is not distributed with this repository; its original rights remain with the rights holders. Official forms and placards are available on the [ATC-20 resource page](https://www.atcouncil.org/atc-20). The manual reference is included in [CITATION.bib](CITATION.bib).
 
-Copy [.env.example](.env.example) to `.env` and replace the PDF path, database output path, API key, endpoint and model names with your own values. The source-PDF path and API key default to empty in `config.py`; the `.env` file stays outside version control. Load the settings before building:
+With a source PDF you have permission to use, copy [.env.example](.env.example) to `.env` and replace the PDF path, database output path, API key, endpoint and model names with your own values. The source-PDF path and API key default to empty in `config.py`; the `.env` file stays outside version control. Load the settings before building:
 
 ```bash
 cp .env.example .env
@@ -150,6 +150,6 @@ If you use SeisMLLM or SeisMLLM-1K in your research, please cite the paper. The 
 
 ## License and acknowledgements
 
-Code is released under the [MIT License](LICENSE). The ATC-20-1 source PDF is excluded from that license and retains its original rights. Dataset and source-image permissions are specified in the [dataset repository](https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset/blob/main/LICENSE). The overview figure is from the accompanying paper and is hosted on the project page.
+Code is released under the [MIT License](LICENSE). Third-party source publications retain their own rights and are not covered by the code license. Dataset and source-image permissions are specified in the [dataset repository](https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset/blob/main/LICENSE). The overview figure is from the accompanying paper and is hosted on the project page.
 
 We acknowledge [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory), [Qwen2.5-VL](https://github.com/QwenLM/Qwen2.5-VL), [RAG-Anything](https://github.com/HKUDS/RAG-Anything) and [LightRAG](https://github.com/HKUDS/LightRAG). These upstream projects retain their own licenses.
