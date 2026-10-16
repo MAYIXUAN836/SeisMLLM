@@ -24,7 +24,7 @@
 <p align="center">
   <a href="https://doi.org/10.1016/j.aei.2026.105126"><img src="https://img.shields.io/badge/Paper-AEI_2026-B31B1B" alt="Paper in Advanced Engineering Informatics"></a>
   <a href="https://github.com/MAYIXUAN836/SeisMLLM"><img src="https://img.shields.io/badge/GitHub-Code-181717" alt="SeisMLLM code repository"></a>
-  <a href="https://mayixuan836.github.io/SeisMLLM-1K-Dataset/"><img src="https://img.shields.io/badge/Project-Page-2563EB" alt="SeisMLLM project page"></a>
+  <a href="https://mayixuan836.github.io/SeisMLLM/"><img src="https://img.shields.io/badge/Project-Page-2563EB" alt="SeisMLLM project page"></a>
   <a href="https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset"><img src="https://img.shields.io/badge/Dataset-SeisMLLM--1K-2E7D32" alt="SeisMLLM-1K dataset"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/Code_License-MIT-6B7280" alt="Code license: MIT"></a>
 </p>
@@ -34,12 +34,12 @@
 SeisMLLM combines multi-view building imagery and earthquake metadata with retrieval of similar historical cases and ATC-20-1 engineering criteria to produce structured post-earthquake safety assessments.
 
 <p align="center">
-  <a href="https://mayixuan836.github.io/SeisMLLM-1K-Dataset/#method">
-    <img src="https://mayixuan836.github.io/SeisMLLM-1K-Dataset/assets/pipeline.png" width="1000" alt="SeisMLLM framework: multi-view images and earthquake metadata, visual understanding, dual retrieval of historical cases and ATC-20-1 criteria, and a structured safety assessment report.">
+  <a href="https://mayixuan836.github.io/SeisMLLM/#method">
+    <img src="https://mayixuan836.github.io/SeisMLLM/assets/pipeline.png" width="1000" alt="SeisMLLM framework: multi-view images and earthquake metadata, visual understanding, dual retrieval of historical cases and ATC-20-1 criteria, and a structured safety assessment report.">
   </a>
 </p>
 
-This repository provides the Qwen2.5-VL LoRA training entry point, the inference pipeline, and source code for similar-case retrieval and codebook retrieval. Quantitative comparisons, qualitative cases and an example assessment report are available on the [project page](https://mayixuan836.github.io/SeisMLLM-1K-Dataset/#results).
+This repository provides the Qwen2.5-VL LoRA training entry point, the inference pipeline, and source code for similar-case retrieval and codebook retrieval. Quantitative comparisons, qualitative cases and an example assessment report are available on the [project page](https://mayixuan836.github.io/SeisMLLM/#results).
 
 ### Field mapping
 
