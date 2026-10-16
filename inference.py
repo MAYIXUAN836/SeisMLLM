@@ -54,6 +54,7 @@ for _p in [OPEN_SOURCE_DIR, RAG_SIMILAR_DIR, RAG_ATC_DIR, RAG_ANYTHING_DIR]:
 
 # --- Imports ---
 from performance_monitor import PerformanceMonitor, estimate_tokens_from_json_output
+from cdd import get_case_damage_description
 
 # 1. Stage 1: Qwen Inference
 try:
@@ -290,7 +291,7 @@ async def english_only_llm(prompt, system_prompt=None, **kwargs):
 
 
 def full_json_to_stage1_fields(full_json: dict) -> dict:
-    """将Qwen输出的完整ATC-20 JSON压缩成 Stage1 需要的字段(IS, PO, CT, SN, DC, SID等)。"""
+    """将Qwen输出的完整ATC-20 JSON压缩成 Stage1 需要的字段(IS, PO, CT, SN, CDD, DC, SID等)。"""
 
     view_type = full_json.get("2_view_type", "Unknown")
 
@@ -339,6 +340,7 @@ def full_json_to_stage1_fields(full_json: dict) -> dict:
         "CT": ct_cat,
         "SN": sn,
         "DC": dc,
+        "CDD": get_case_damage_description(full_json),
         "SID": sid_list,
         "5_stories": stories,
         "6_evaluation": evals,
@@ -395,7 +397,7 @@ class Pipeline:
 
         返回值为 (full_pred, stage1_fixed)：
         - full_pred: 归一化后的完整 Qwen JSON（用于评估 Stage1，保持与 baseline 一致）
-        - stage1_fixed: 仅包含 IS/PO/CT/SN/DC/SID 等字段，用于后续 RAG 检索
+        - stage1_fixed: 仅包含 IS/PO/CT/SN/CDD/DC/SID 等字段，用于后续 RAG 检索
         """
         # Qwen inference
         # Note: generate_json is synchronous in the original script, but we are in async loop.
@@ -457,7 +459,7 @@ class Pipeline:
         print("="*80)
         
         # Convert Stage 1 simplified format to full format expected by retrieval
-        # Stage 1 outputs: IS, PO, CT, SN, DC, SID
+        # Stage 1 outputs: IS, PO, CT, SN, CDD, DC, SID
         # Retrieval expects: 2_view_type, 3_primary_occupation, 4_type_of_construction, 5_stories, 9_image_descriptions
         
         converted_case = {
@@ -472,6 +474,7 @@ class Pipeline:
             },
             "5_stories": stage1_json.get("5_stories", {"over_ground": None, "under_ground": None}),
             "6_evaluation": stage1_json.get("6_evaluation", {}),
+            "CDD": stage1_json["CDD"],
             "9_image_descriptions": {}
         }
         
@@ -522,23 +525,23 @@ class Pipeline:
         print("="*80)
 
         # Construct query from Stage 1 JSON - use actual Stage 1 field names
-        # Stage 1 outputs: IS, PO, CT, SN, DC, SID
+        # Stage 1 outputs: IS, PO, CT, SN, CDD, DC, SID
         ct_raw = stage1_json.get("CT", "Unknown")  # Construction Type
         po_raw = stage1_json.get("PO", "Unknown")  # Primary Occupation
-        dc_raw = stage1_json.get("DC", "Unknown")  # Damage Conditions
+        cdd_raw = stage1_json["CDD"]  # Case Damage Description; ratings remain in DC
         sid_raw = stage1_json.get("SID", [])  # Image descriptions
 
         # Stage3 Qwen模型输出已经是英文，直接使用
         ct = ct_raw
         po = po_raw
-        dc = dc_raw
+        cdd = cdd_raw
         sid = sid_raw
 
         # Build a comprehensive query based on Stage 1 results (now English-only as far as possible)
-        damage_details = ", ".join(sid[:2]) if isinstance(sid, list) and sid else dc
+        damage_details = ", ".join(sid[:2]) if isinstance(sid, list) and sid else cdd
 
         query = f"""Safety evaluation for {ct} building used as {po}. 
-        Observed damage: {dc} severity. 
+        Observed damage description: {cdd}.
         Specific observations: {damage_details}. 
         What are the ATC-20 evaluation criteria and posting requirements?"""
 
@@ -771,6 +774,7 @@ Strict requirements:
                 "4_type_of_construction": {"category": stage1_res.get("CT", "Unknown")},
                 "5_stories": stage1_res.get("5_stories", {"over_ground": None, "under_ground": None}),
                 "6_evaluation": stage1_res.get("6_evaluation", {}),
+                "CDD": stage1_res["CDD"],
                 "9_image_descriptions": {f"image{i+1}": desc for i, desc in enumerate(stage1_res.get("SID", []))}
             },
             self.similar_case_kb, self.similar_case_model, top_k=3

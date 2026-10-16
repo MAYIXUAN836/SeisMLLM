@@ -39,6 +39,7 @@ JSON OUTPUT STRUCTURE (MUST FOLLOW EXACTLY)
     "over_ground": "integer or null",
     "under_ground": "integer or null"
   },
+  "CDD": "string (case-level damage description)",
   "6_evaluation": {
     "1_collapse_partial_collapse_or_building_off_foundation": {
       "status": "string",
@@ -106,6 +107,10 @@ Visual Identification Rules:
 [5_stories]
 - over_ground: Integer (only if full height visible), else null
 - under_ground: Integer (only if visible), else null
+
+[CDD] - Case Damage Description
+- Combine the six 6_evaluation.description values in condition order, separated by spaces.
+- CDD stores the existing descriptive text; do not include the status labels. DC ratings remain in 6_evaluation.
 
 [6_evaluation] - Six Damage Conditions
 For EACH condition, provide:

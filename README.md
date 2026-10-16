@@ -41,6 +41,12 @@ SeisMLLM combines multi-view building imagery and earthquake metadata with retri
 
 This repository provides the Qwen2.5-VL LoRA training entry point, the inference pipeline, and source code for similar-case retrieval and codebook retrieval. Quantitative comparisons, qualitative cases and an example assessment report are available on the [project page](https://mayixuan836.github.io/SeisMLLM-1K-Dataset/#results).
 
+### Field mapping
+
+**CDD** means Case Damage Description; **DC** means Damage Conditions. Released annotations retain each condition's `status` and `description` in `6_evaluation`. `CDD` combines the six existing descriptions into case-level text, without copying their status values. No annotation text is rewritten. The same mapping is used in the conversation files, JSON predictions and both retrieval paths; older records without `CDD` remain supported. **SID** contains the individual image descriptions, and **SP** is the safety posting stored in `8_final_status`.
+
+This mapping preserves the existing training and inference workflow. It does not reconstruct a new experimental split or establish reproduction of the paper's reported results.
+
 [Installation](#installation) · [Dataset](#dataset) · [Training](#training) · [Inference](#inference) · [Repository layout](#repository-layout) · [Citation](#citation)
 
 ## Dataset
