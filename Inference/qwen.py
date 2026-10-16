@@ -10,7 +10,6 @@ Note:
 
 import json
 import os
-from cdd import get_case_damage_description
 
 from typing import Any, Dict
 
@@ -144,7 +143,6 @@ def _norm(value, mapping):
 
 def normalize_prediction(pred: Dict[str, Any]) -> Dict[str, Any]:
     data = dict(pred)
-    data["CDD"] = get_case_damage_description(data)
 
     vt = data.get("2_view_type")
     vt_norm = _norm(vt, ALLOWED_VIEW)

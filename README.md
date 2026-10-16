@@ -41,11 +41,18 @@ SeisMLLM combines multi-view building imagery and earthquake metadata with retri
 
 This repository provides the Qwen2.5-VL LoRA training entry point, the inference pipeline, and source code for similar-case retrieval and codebook retrieval. Quantitative comparisons, qualitative cases and an example assessment report are available on the [project page](https://mayixuan836.github.io/SeisMLLM/#results).
 
-### Field mapping
+### Paper terminology and released fields
 
-**CDD** means Case Damage Description; **DC** means Damage Conditions. Released annotations retain each condition's `status` and `description` in `6_evaluation`. `CDD` combines the six existing descriptions into case-level text, without copying their status values. No annotation text is rewritten. The same mapping is used in the conversation files, JSON predictions and both retrieval paths; older records without `CDD` remain supported. **SID** contains the individual image descriptions, and **SP** is the safety posting stored in `8_final_status`.
+**DC** (Damage Conditions) denotes the six condition ratings; **CDD** (Case Damage Description) denotes the descriptive damage evidence. They are stored together in `6_evaluation`: each condition has a `status` (DC) and a `description` (CDD). No separate concatenated `CDD` field is required.
 
-This mapping preserves the existing training and inference workflow. It does not reconstruct a new experimental split or establish reproduction of the paper's reported results.
+| Paper term | Released JSON | Evaluation |
+| --- | --- | --- |
+| DC | `6_evaluation.<condition>.status` | Exact-match accuracy, averaged across conditions and then cases. |
+| CDD | `6_evaluation.<condition>.description` | BLEU-4, METEOR and ROUGE-L, computed per condition and then averaged across conditions and cases. |
+| SID | `9_image_descriptions` | Image-level descriptive text. |
+| SP | `8_final_status.status` and `.reasoning` | Safety posting and its supporting reasoning. |
+
+The `[DC]` section in `train.json` and `test.json` groups the ratings and supporting descriptions from the same six condition objects. There is no separate `[CDD]` section. Similar-case retrieval joins the existing condition descriptions temporarily to form retrieval text; evaluation scores the descriptions per condition. These field definitions do not change the inference stages.
 
 [Installation](#installation) · [Dataset](#dataset) · [Training](#training) · [Inference](#inference) · [Repository layout](#repository-layout) · [Citation](#citation)
 

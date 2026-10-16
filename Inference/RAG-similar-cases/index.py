@@ -1,9 +1,5 @@
 import os
 from pathlib import Path
-import sys
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from cdd import get_case_damage_description
-
 import json
 import numpy as np
 import pickle
@@ -31,8 +27,20 @@ def construct_stage1_text(item):
     descriptions = item.get("9_image_descriptions", {})
     sid_text = " ".join(descriptions.values()) if descriptions else ""
     
-    # CDD is text; legacy records map their existing six condition descriptions.
-    cdd_text = get_case_damage_description(item)
+    # CDD 文本取自现有各项 description；这里只组合检索文本，不新增标注字段。
+    # 注意: Stage 1 的 CDD 可能是结构化的字典，也可能是简化版 key
+    # 如果是字典，提取所有不为空的 description
+    cdd_text = ""
+    evals = item.get("6_evaluation", {})
+    if isinstance(evals, dict):
+        cdd_parts = []
+        for key, val in evals.items():
+            if isinstance(val, dict) and val.get("description"):
+                cdd_parts.append(val.get("description"))
+        cdd_text = " ".join(cdd_parts)
+    elif isinstance(item.get("CDD"), str):
+        # 兼容 main_pipeline 里传入来的简化版 key
+        cdd_text = item.get("CDD")
 
     # 3. 合并
     final_text = f"Global Damage: {cdd_text}. Visual Details: {sid_text}"
@@ -53,7 +61,16 @@ def construct_full_text(item):
     descriptions = item.get("9_image_descriptions", {})
     sid_text = " ".join(descriptions.values()) if descriptions else "No description available."
     
-    cdd_text = get_case_damage_description(item)
+    cdd_text = ""
+    evals = item.get("6_evaluation", {})
+    if isinstance(evals, dict):
+        cdd_parts = []
+        for key, val in evals.items():
+            if isinstance(val, dict) and val.get("description"):
+                cdd_parts.append(val.get("description"))
+        cdd_text = " ".join(cdd_parts)
+    elif isinstance(item.get("CDD"), str):
+        cdd_text = item.get("CDD")
 
     # ...
     return f"Construction: {ct}. Stories: {stories}. Occupation: {po}. View: {view}. Description: {sid_text}. Damage Summary: {cdd_text}"
