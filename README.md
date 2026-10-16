@@ -23,7 +23,7 @@
 
 <p align="center">
   <a href="https://doi.org/10.1016/j.aei.2026.105126"><img src="https://img.shields.io/badge/Paper-AEI_2026-B31B1B" alt="Paper in Advanced Engineering Informatics"></a>
-  <a href="https://github.com/MAYIXUAN836/SeisMLLM-Code"><img src="https://img.shields.io/badge/GitHub-Code-181717" alt="SeisMLLM code repository"></a>
+  <a href="https://github.com/MAYIXUAN836/SeisMLLM"><img src="https://img.shields.io/badge/GitHub-Code-181717" alt="SeisMLLM code repository"></a>
   <a href="https://mayixuan836.github.io/SeisMLLM-1K-Dataset/"><img src="https://img.shields.io/badge/Project-Page-2563EB" alt="SeisMLLM project page"></a>
   <a href="https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset"><img src="https://img.shields.io/badge/Dataset-SeisMLLM--1K-2E7D32" alt="SeisMLLM-1K dataset"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/Code_License-MIT-6B7280" alt="Code license: MIT"></a>
@@ -53,8 +53,8 @@ This repository provides the Qwen2.5-VL LoRA training entry point, the inference
 Use Python 3.10 or later and install the dependencies in `requirements.txt`. Training uses [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory); inference uses [Qwen2.5-VL](https://github.com/QwenLM/Qwen2.5-VL), [RAG-Anything](https://github.com/HKUDS/RAG-Anything) and [LightRAG](https://github.com/HKUDS/LightRAG).
 
 ```bash
-git clone https://github.com/MAYIXUAN836/SeisMLLM-Code.git
-cd SeisMLLM-Code
+git clone https://github.com/MAYIXUAN836/SeisMLLM.git
+cd SeisMLLM
 pip install -r requirements.txt
 git clone https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset.git Dataset
 ```
@@ -88,7 +88,7 @@ Supporting source is in `Inference/`. Similar-case indexing and retrieval are in
 ## Repository layout
 
 ```text
-SeisMLLM-Code/
+SeisMLLM/
 ├── train.py                       # Qwen2.5-VL LoRA training
 ├── inference.py                   # Safety-assessment inference pipeline
 ├── Inference/
