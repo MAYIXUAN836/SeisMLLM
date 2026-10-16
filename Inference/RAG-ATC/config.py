@@ -38,7 +38,7 @@ QUERY_MODE = os.getenv("RAG_ATC_QUERY_MODE", "hybrid")  # naive/local/global/hyb
 
 LLM_MODEL = os.getenv("RAG_ATC_LLM_MODEL", "qwen2.5:32b")
 BASE_URL = os.getenv("RAG_ATC_BASE_URL", "http://localhost:11434/v1")
-API_KEY = os.getenv("RAG_ATC_API_KEY", "")  # 默认留空，由用户自行配置
+API_KEY = os.getenv("RAG_ATC_API_KEY", "")  # Fill in your API key via RAG_ATC_API_KEY.
 
 
 # ==================== Embedding 配置 ====================
@@ -50,7 +50,7 @@ EMBEDDING_MAX_TOKEN_SIZE = int(os.getenv("RAG_ATC_EMBED_MAX_TOKENS", "8192"))
 
 # ==================== 源 PDF 路径（用于构建知识库） ====================
 
-PDF_FILE = os.getenv("RAG_ATC_PDF_FILE", "")
+PDF_FILE = os.getenv("RAG_ATC_PDF_FILE", "")  # Set your absolute path to 20-1-OCR.pdf.
 
 
 # ==================== 解析与多模态开关 ====================

@@ -99,13 +99,16 @@ python Inference/RAG-similar-cases/index.py
 
 ### Codebook source and construction
 
-Obtain the applicable ATC-20 publication from the [Applied Technology Council](https://store.atcouncil.org/products/procedures-for-postearthquake-safety-evaluation-of-buildings-addendum?variant=48162042347732). The [ATC-20-1 Field Manual, second edition (2005)](https://store.atcouncil.org/products/field-manual-postearthquake-safety-evaluation-of-buildings-2nd-edition) is the field-manual reference used by SeisMLLM. Source publications retain their publisher's rights. Official evaluation forms and placards are available on the [ATC-20 resource page](https://www.atcouncil.org/atc-20); these are separate from the complete manual. The manual reference is included in [CITATION.bib](CITATION.bib).
+The OCR source PDF, [20-1-OCR.pdf](Inference/RAG-ATC/20-1-OCR.pdf), is located beside the knowledge-graph builder. It is the [ATC-20-1 Field Manual, second edition (2005)](https://store.atcouncil.org/products/field-manual-postearthquake-safety-evaluation-of-buildings-2nd-edition); the reference is included in [CITATION.bib](CITATION.bib). The PDF is a third-party publication by the Applied Technology Council and is excluded from this repository's MIT License. Its original rights remain with the rights holders.
 
-With a source PDF that you have permission to use, configure the model and embedding settings above, then build the codebook database locally:
+Copy [.env.example](.env.example) to `.env` and replace the PDF path, database output path, API key, endpoint and model names with your own values. The source-PDF path and API key default to empty in `config.py`; the `.env` file stays outside version control. Load the settings before building:
 
 ```bash
-export RAG_ATC_PDF_FILE="/path/to/your/source.pdf"
-export RAG_ATC_KB_DIR="/path/to/codebook_database"
+cp .env.example .env
+# Edit .env with your own paths, API key, endpoint and models first.
+set -a
+source .env
+set +a
 python Inference/RAG-ATC/build.py
 ```
 
@@ -147,6 +150,6 @@ If you use SeisMLLM or SeisMLLM-1K in your research, please cite the paper. The 
 
 ## License and acknowledgements
 
-Code is released under the [MIT License](LICENSE). Dataset and source-image permissions are specified in the [dataset repository](https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset/blob/main/LICENSE). The overview figure is from the accompanying paper and is hosted on the project page.
+Code is released under the [MIT License](LICENSE). The ATC-20-1 source PDF is excluded from that license and retains its original rights. Dataset and source-image permissions are specified in the [dataset repository](https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset/blob/main/LICENSE). The overview figure is from the accompanying paper and is hosted on the project page.
 
 We acknowledge [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory), [Qwen2.5-VL](https://github.com/QwenLM/Qwen2.5-VL), [RAG-Anything](https://github.com/HKUDS/RAG-Anything) and [LightRAG](https://github.com/HKUDS/LightRAG). These upstream projects retain their own licenses.
