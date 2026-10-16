@@ -520,7 +520,7 @@ class Pipeline:
         # Stage 1 outputs: IS, PO, CT, SN, DC, SID
         ct_raw = stage1_json.get("CT", "Unknown")  # Construction Type
         po_raw = stage1_json.get("PO", "Unknown")  # Primary Occupation
-        dc_raw = stage1_json.get("DC", "Unknown")  # Damage Description
+        dc_raw = stage1_json.get("DC", "Unknown")  # Damage Conditions
         sid_raw = stage1_json.get("SID", [])  # Image descriptions
 
         # Stage3 Qwen模型输出已经是英文，直接使用
