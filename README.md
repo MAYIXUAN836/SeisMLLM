@@ -82,7 +82,7 @@ python train.py --dataset-dir Dataset --output-dir saves/seismllm
 
 Training retains the released tagged report targets (`[IS]`, `[PO]`, `[CT]`, `[SN]`, `[DC]`, `[SID]`). Preparation checks that every target can be read by the inference adapter. Stage 1 accepts both these reports and JSON predictions, converting reports into the existing nested assessment fields before retrieval and reasoning. Older reports using `[CDD]` for the six condition ratings are supported too. Missing safety postings or damage estimates are not invented by the adapter.
 
-Category names are shared between the prompt and normalization code in `Inference/assessment_format.py`. `Office` is accepted as an alias for the released spelling `Offices`; `Other residential`, `Tilt-up concrete` and the existing construction-visibility label are retained. Original labels pending review are preserved and reported during training preparation.
+Category names are shared between the prompt and normalization code in `Inference/assessment_format.py`. `Office` is accepted as an alias for the released spelling `Offices`; `Other residential`, `Tilt-up concrete` and the existing construction-visibility label are retained. Training preparation reports any out-of-vocabulary labels without reclassifying them. The dataset's [annotation change log](https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset/blob/main/ANNOTATION_CHANGES.md) records the PO corrections and their review method.
 
 ## Inference
 
@@ -107,6 +107,8 @@ Supporting source is in `Inference/`. Similar-case indexing and retrieval are in
 1. **Training cases only.** The index builder reads annotations from `Full_GT.json`, but admits only complete cases matching `train.json`. Cases in `test.json` are excluded before embedding.
 2. **Image-based case identity.** Complete image filenames identify cases across different folders and legacy case numbers. Retrieval excludes any candidate sharing an image with the query, including queries using a subset of views.
 3. **Validation when loading.** Every loaded index is checked against the current train/test manifests and the actual inference inputs. Test cases, unregistered cases, duplicate cases and overlaps with inference inputs cause loading to stop.
+
+These checks use image filenames and cannot detect different photographs of the same building. The current dataset has a known same-building pair, `case_1120` (train) and `case_1148` (test), whose split membership is unchanged pending a separate correction. The guards therefore do not establish building-level train/test isolation; see the dataset's [annotation change log](https://github.com/MAYIXUAN836/SeisMLLM-1K-Dataset/blob/main/ANNOTATION_CHANGES.md). Rebuild existing indices to use revised PO annotations.
 
 The manifests are read from `Dataset/`, or the directory specified by `SEISMLLM_DATASET_DIR`. The split manifests must have distinct image filenames. Build the similar-case index with:
 
